@@ -16,6 +16,15 @@ import java.io.IOException;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Multi-threaded implementation of grep util
+ * <p>
+ * Starts recursive directory traversing on a separate thread, and do it in a one thread
+ * <p>
+ * Each file descriptor is sent over the same thread pool and processed concurrently
+ *
+ * Once traversing is done we wait for the rest of the file parsing tasks to complete.
+ */
 public class Grep {
     /**
      * Common thread pool that is used for
@@ -154,7 +163,7 @@ public class Grep {
     private void onObjectFound(ObjectDescriptor objectPath) {
         // Encounter a data object
         // Atomically increment the file counter when a new file is discovered
-        // We will use it as a finish trigger
+        // We will use it as a trigger to await for the process to finish
         filesToProcessCounter.incrementAndGet();
 
         statistics.incFilesProcessed();
@@ -174,7 +183,6 @@ public class Grep {
             filesToProcessCounter.decrementAndGet();
 
             // Traversing was finished, wait for the rest of file content search tasks to complete
-
             if (storeTraversingFut.isDone() && filesToProcessCounter.get() == 0) {
                 shutdownLatch.countDown();
             }
@@ -196,10 +204,10 @@ public class Grep {
         // Wait for the rest of the objects being processed, it's safe as traversing is finished
         shutdownLatch.await();
 
-        // Stop the pool
+        // Stop the pool just in case (not necessary step as all tasks were finished on a previous step
         pool.shutdown();
 
-        // Optionally; display stats
+        // Optionally, display stats
         outputStatistics();
     }
 
