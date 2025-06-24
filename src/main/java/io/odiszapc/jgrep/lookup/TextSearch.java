@@ -2,7 +2,7 @@ package io.odiszapc.jgrep.lookup;
 
 import io.odiszapc.jgrep.fs.ObjectDescriptor;
 import io.odiszapc.jgrep.matcher.Matcher;
-import io.odiszapc.jgrep.output.Output;
+import io.odiszapc.jgrep.output.OutputPrinter;
 import io.odiszapc.jgrep.pojo.LineMatch;
 
 import java.io.IOException;
@@ -16,12 +16,12 @@ import java.util.function.BiFunction;
 public class TextSearch {
     private final ObjectDescriptor path;
     private final Matcher matcher;
-    private final Output output;
+    private final OutputPrinter output;
     private final BiFunction<Integer, Integer, Void> onCompleted;
 
     public TextSearch(ObjectDescriptor path,
                       Matcher matcher,
-                      Output output,
+                      OutputPrinter output,
                       BiFunction<Integer, Integer, Void> onCompleted) {
         this.path = path;
         this.matcher = matcher;
@@ -31,7 +31,6 @@ public class TextSearch {
 
     /**
      * Start search for single file
-     *
      */
     public void run() throws IOException {
         final Scanner lines = new Scanner(path.toObject().is(), StandardCharsets.UTF_8);

@@ -10,10 +10,8 @@ public class LocalFileStore implements ObjectStore {
 
     private static final LocalFileStore instance = new LocalFileStore();
 
-
     private LocalFileStore() {
     }
-
 
     public static LocalFileStore instance() {
         return instance;
@@ -21,6 +19,7 @@ public class LocalFileStore implements ObjectStore {
 
     /**
      * Return {@link ObjectDescriptor} wrapper for the specified object path
+     *
      * @param objectPath path to object
      * @return instance of {@link ObjectDescriptor}
      */

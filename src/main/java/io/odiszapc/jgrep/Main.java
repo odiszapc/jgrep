@@ -10,7 +10,7 @@ import static java.lang.System.exit;
 public class Main {
     /**
      * The entrypoint.
-     *
+     * <p>
      * We don't use any command line parsing library or rich parsing and tuning
      * as we're focused on a concurrency part in this task
      *

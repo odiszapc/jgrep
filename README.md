@@ -23,9 +23,9 @@ java -cp target/grep-java.jar io.odiszapc.jgrep.Main /path/to/dir "searchPattern
 Or programmatically:
 
 ```java
-Grep.plainSearch(store, rootDir, pattern, numThreads);
-Grep.regexSearch(store, rootDir, regexPattern, numThreads);
-Grep.ignireCaseSearch(store, rootDir, regexPattern, numThreads);
+Grep.plainSearch(store,rootDir,pattern,numThreads);
+        Grep.regexSearch(store,rootDir,regexPattern,numThreads);
+        Grep.ignireCaseSearch(store,rootDir,regexPattern,numThreads);
 ```
 
 ## Design Considerations
@@ -74,12 +74,13 @@ To run tests:
 mvn test
 ```
 
-## What Could Be Improved
+## What could be improved
 
 * Handle file access failures more gracefully (e.g., permission errors, encoding issues)
 * Implement an AWS S3-backed `ObjectStore` — the current abstractions support this
 * Use Lombok to reduce boilerplate in POJOs
 * Create deep tests using virtual directory trees to detect issues with symlinks, deeply nested directories, etc.
 * Improve exception handling and reconsider the use of checked exceptions
-* Allow parallel parsing of object parts — useful for a small number of very large files; this would require an `ObjectPartition` abstraction
+* Allow parallel parsing of object parts — useful for a small number of very large files; this would require
+  an `ObjectPartition` abstraction
 * Design a **distributed grep** version that can run across multiple machines with coordination via Consul or Zookeeper

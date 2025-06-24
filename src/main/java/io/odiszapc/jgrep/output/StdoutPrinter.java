@@ -6,7 +6,7 @@ import io.odiszapc.jgrep.pojo.LineMatch;
 /**
  * Output to stdout
  */
-public class StdoutPrinter implements Output {
+public class StdoutPrinter implements OutputPrinter {
 
     private final LineFormatter lineFormatter;
 

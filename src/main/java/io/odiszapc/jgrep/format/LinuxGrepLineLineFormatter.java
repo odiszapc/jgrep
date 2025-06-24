@@ -9,6 +9,7 @@ public class LinuxGrepLineLineFormatter implements LineFormatter {
 
     /**
      * Format the line matching result
+     *
      * @param match line matched
      * @return String formatted
      */

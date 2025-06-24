@@ -13,10 +13,10 @@ import java.io.IOException;
  * What we want to do is iterate over the directories in a single thread instead
  * and then submit each file to be parsed to a concurrent part of this software.
  */
-public class DirTraverser {
+public class ObjectTreeWalker {
     private final ObjectDescriptor parentContainer;
 
-    public DirTraverser(ObjectDescriptor parent) {
+    public ObjectTreeWalker(ObjectDescriptor parent) {
         this.parentContainer = parent;
     }
 
@@ -27,12 +27,12 @@ public class DirTraverser {
      * @param containerPath path to parent container
      * @param objectHandler invoked each time we encounter an object (file)
      */
-    private static void iterateChildren(ObjectDescriptor containerPath,
-                                        ObjectHandler objectHandler) throws IOException {
+    private void walk(ObjectDescriptor containerPath,
+                      ObjectHandler objectHandler) throws IOException {
         try (ObjectsIterable<?> objects = containerPath.children()) {
             for (ObjectDescriptor object : objects) {
                 if (object.isContainer()) {
-                    iterateChildren(object, objectHandler);
+                    walk(object, objectHandler);
                 } else {
                     objectHandler.process(object);
                 }
@@ -47,7 +47,7 @@ public class DirTraverser {
      * @param objectHandler invoked each time we encounter an object (file)
      */
     public static void run(ObjectDescriptor containerPath, ObjectHandler objectHandler) {
-        new DirTraverser(containerPath).run(objectHandler);
+        new ObjectTreeWalker(containerPath).run(objectHandler);
     }
 
     /**
@@ -57,7 +57,7 @@ public class DirTraverser {
      */
     public void run(ObjectHandler objectHandler) {
         try {
-            iterateChildren(parentContainer, objectHandler);
+            walk(parentContainer, objectHandler);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

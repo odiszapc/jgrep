@@ -7,7 +7,7 @@ import io.odiszapc.jgrep.matcher.IgnoreCaseMatcher;
 import io.odiszapc.jgrep.matcher.Matcher;
 import io.odiszapc.jgrep.matcher.RegexMatcher;
 import io.odiszapc.jgrep.matcher.SimpleMatcher;
-import io.odiszapc.jgrep.output.Output;
+import io.odiszapc.jgrep.output.OutputPrinter;
 import io.odiszapc.jgrep.output.StdoutPrinter;
 import io.odiszapc.jgrep.stats.Statistics;
 import io.odiszapc.jgrep.stats.StatisticsFormatter;
@@ -64,7 +64,7 @@ public class Grep {
     /**
      * Grep output sink (stdout by default)
      */
-    private final Output output;
+    private final OutputPrinter output;
 
     /**
      * Build {@link Grep} instance and start search with a {@link SimpleMatcher} strategy
@@ -183,7 +183,7 @@ public class Grep {
 
     public Grep startAsync() {
         storeTraversingFut = pool.submit(() -> {
-            DirTraverser.run(containerPath, this::onObjectFound);
+            ObjectTreeWalker.run(containerPath, this::onObjectFound);
         });
 
         return this;

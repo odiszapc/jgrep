@@ -1,7 +1,6 @@
 package io.odiszapc.jgrep.fs.local;
 
 import io.odiszapc.jgrep.fs.ObjectData;
-import io.odiszapc.jgrep.fs.ObjectDescriptor;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,6 +20,7 @@ public class LocalFsObject implements ObjectData {
 
     /**
      * Returns local file size in bytes
+     *
      * @return size in bytes
      */
     @Override
@@ -30,6 +30,7 @@ public class LocalFsObject implements ObjectData {
 
     /**
      * Returns {@link InputStream} for reading data from local file
+     *
      * @return Instance of {@link InputStream}
      */
     @Override

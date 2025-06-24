@@ -12,9 +12,9 @@ import java.util.stream.StreamSupport;
 
 /**
  * {@link ObjectsIterable} collection implementation for directory in local file system
- *
+ * <p>
  * Used to iterate over the specified directory to the given directory to iterate over its files
- *
+ * <p>
  * Once created opens a {@link java.util.stream.Stream}
  */
 public class LocalFsObjects implements ObjectsIterable<LocalFsDescriptor>, Closeable {

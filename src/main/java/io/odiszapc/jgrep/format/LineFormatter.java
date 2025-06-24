@@ -9,6 +9,7 @@ import io.odiszapc.jgrep.pojo.LineMatch;
 public interface LineFormatter {
     /**
      * Format the line match provided
+     *
      * @param match line matched
      * @return String formatted
      */
