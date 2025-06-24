@@ -2,6 +2,9 @@ package io.odiszapc.jgrep.stats;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Thread-safe implementation of statistics snapshot
+ */
 public class Statistics {
     private static final AtomicLong objectsProcessed = new AtomicLong(0);
     private static final AtomicLong bytesProcessed = new AtomicLong(0);

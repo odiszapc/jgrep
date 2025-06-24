@@ -10,26 +10,54 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.stream.StreamSupport;
 
+/**
+ * {@link ObjectsIterable} collection implementation for directory in local file system
+ *
+ * Used to iterate over the specified directory to the given directory to iterate over its files
+ *
+ * Once created opens a {@link java.util.stream.Stream}
+ */
 public class LocalFsObjects implements ObjectsIterable<LocalFsDescriptor>, Closeable {
+    private final DirectoryStream<Path> directoryStream;
 
-    private final DirectoryStream<Path> dirStream;
-
+    /**
+     * Construct iterator for given directory
+     *
+     * @param directory local directory descriptor
+     * @throws IOException
+     */
     public LocalFsObjects(LocalFsDescriptor directory) throws IOException {
         this(directory.getPath());
     }
 
+    /**
+     * Construct iterator for given directory
+     *
+     * @param directory local directory {@link Path}
+     * @throws IOException
+     */
     public LocalFsObjects(Path directory) throws IOException {
-        dirStream = Files.newDirectoryStream(directory);
+        directoryStream = Files.newDirectoryStream(directory);
     }
 
+    /**
+     * Returns iterator for given directory
+     *
+     * @return instance of {@link Iterator<LocalFsDescriptor>}
+     */
     @Override
     public Iterator<LocalFsDescriptor> it() {
-        return StreamSupport.stream(dirStream.spliterator(), false)
+        return StreamSupport.stream(directoryStream.spliterator(), false)
                 .map(LocalFsDescriptor::of).iterator();
     }
 
+    /**
+     * Close directory {@link java.util.stream.Stream}
+     *
+     * @throws IOException
+     */
     @Override
     public void close() throws IOException {
-        dirStream.close();
+        directoryStream.close();
     }
 }

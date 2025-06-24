@@ -2,6 +2,9 @@ package io.odiszapc.jgrep.pojo;
 
 import io.odiszapc.jgrep.fs.ObjectDescriptor;
 
+/**
+ * POJO represents matched line from specific file along with line number
+ */
 public class LineMatch {
     private final ObjectDescriptor objectPath;
     private final Integer lineNum;

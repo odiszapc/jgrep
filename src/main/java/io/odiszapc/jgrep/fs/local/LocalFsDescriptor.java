@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * {@link ObjectDescriptor} implementation for local file system
+ */
 public class LocalFsDescriptor implements ObjectDescriptor {
     private final Path path;
 
@@ -31,7 +34,7 @@ public class LocalFsDescriptor implements ObjectDescriptor {
 
     @Override
     public ObjectsIterable<? extends ObjectDescriptor> children() throws IOException {
-        return new LocalFsObjects(LocalFsDescriptor.of(path));
+        return new LocalFsObjects(path);
     }
 
     public LocalFsDescriptor(String localPath) {

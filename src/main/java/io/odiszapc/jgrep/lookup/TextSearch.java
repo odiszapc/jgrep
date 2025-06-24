@@ -10,19 +10,29 @@ import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import java.util.function.BiFunction;
 
+/**
+ * Search text inside object line-by-line
+ */
 public class TextSearch {
     private final ObjectDescriptor path;
     private final Matcher matcher;
     private final Output output;
-    private final BiFunction<Integer, Integer, Void> onFinish;
+    private final BiFunction<Integer, Integer, Void> onCompleted;
 
-    public TextSearch(ObjectDescriptor path, Matcher matcher, Output output, BiFunction<Integer, Integer, Void> onFinishHandler) {
+    public TextSearch(ObjectDescriptor path,
+                      Matcher matcher,
+                      Output output,
+                      BiFunction<Integer, Integer, Void> onCompleted) {
         this.path = path;
         this.matcher = matcher;
         this.output = output;
-        this.onFinish = onFinishHandler;
+        this.onCompleted = onCompleted;
     }
 
+    /**
+     * Start search for single file
+     *
+     */
     public void run() throws IOException {
         final Scanner lines = new Scanner(path.toObject().is(), StandardCharsets.UTF_8);
 
@@ -42,6 +52,6 @@ public class TextSearch {
             throw lines.ioException();
         }
 
-        onFinish.apply(linesProcessed, linesMatched);
+        onCompleted.apply(linesProcessed, linesMatched);
     }
 }

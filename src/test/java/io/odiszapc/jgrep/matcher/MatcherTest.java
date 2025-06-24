@@ -8,23 +8,23 @@ public class MatcherTest {
     @Test
     public void testSimpleMatcher() {
         Matcher matcher = new SimpleMatcher("hello");
-        assertTrue(matcher.matches("hello world"));
-        assertFalse(matcher.matches("goodbye world"));
+        assertTrue(matcher.match("hello world"));
+        assertFalse(matcher.match("goodbye world"));
     }
 
     @Test
     public void testIgnoreCaseMatcher() {
         Matcher matcher = new IgnoreCaseMatcher("HELLO");
-        assertTrue(matcher.matches("hello world"));
-        assertTrue(matcher.matches("HELLO WORLD"));
-        assertFalse(matcher.matches("goodbye world"));
+        assertTrue(matcher.match("hello world"));
+        assertTrue(matcher.match("HELLO WORLD"));
+        assertFalse(matcher.match("goodbye world"));
     }
 
     @Test
     public void testRegexMatcher() {
         Matcher matcher = new RegexMatcher("h.llo");
-        assertTrue(matcher.matches("hello"));
-        assertTrue(matcher.matches("hallo"));
-        assertFalse(matcher.matches("hxllo world"));
+        assertTrue(matcher.match("hello"));
+        assertTrue(matcher.match("hallo"));
+        assertFalse(matcher.match("hexlo world"));
     }
 }

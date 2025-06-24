@@ -3,9 +3,11 @@ package io.odiszapc.jgrep.lookup;
 import io.odiszapc.jgrep.format.LinuxGrepLineLineFormatter;
 import io.odiszapc.jgrep.fs.ObjectDescriptor;
 import io.odiszapc.jgrep.fs.ObjectStore;
+import io.odiszapc.jgrep.matcher.IgnoreCaseMatcher;
 import io.odiszapc.jgrep.matcher.Matcher;
 import io.odiszapc.jgrep.matcher.RegexMatcher;
 import io.odiszapc.jgrep.matcher.SimpleMatcher;
+import io.odiszapc.jgrep.output.Output;
 import io.odiszapc.jgrep.output.StdoutPrinter;
 import io.odiszapc.jgrep.stats.Statistics;
 import io.odiszapc.jgrep.stats.StatisticsFormatter;
@@ -15,36 +17,126 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Grep {
+    /**
+     * Common thread pool that is used for
+     * - Traversing directory hierarchy
+     * - Parse each file in a concurrent manner
+     */
     private final ExecutorService pool;
-    private final ObjectDescriptor rootContainer;
+
+    /**
+     * Parent container to start the process from
+     */
+    private final ObjectDescriptor containerPath;
+
+    /**
+     * Latch that used as a trigger for awaiting the whole process to finish.
+     * <p>
+     * Is activated when we detected traversing over directory hierarchy is completed
+     */
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
+
+    /**
+     * Util to collect statistics about how much is processed/parsed/matched
+     */
     private final Statistics statistics;
+
+    /**
+     * Future that completed when we traverse all the directory hierarchy
+     */
     private Future<?> storeTraversingFut;
+
+    /**
+     * Strategy for searching inside the file:
+     * - {@link SimpleMatcher}
+     * - {@link IgnoreCaseMatcher}
+     * - {@link RegexMatcher}
+     */
     private final Matcher matcher;
 
-    private static final AtomicInteger filesToProcessCounter = new AtomicInteger(0);
-    private final StdoutPrinter output;
+    /**
+     * Thread-safe counter representing number of files to be processed
+     * Incremented on traversing
+     * Decremented when file was parsed
+     */
+    private final AtomicInteger filesToProcessCounter = new AtomicInteger(0);
 
-    public static void plainSearch(ObjectStore store, String rootDir, String pattern, int nThreads) throws ExecutionException, InterruptedException {
-        run(store, rootDir, nThreads, new SimpleMatcher(pattern));
+    /**
+     * Grep output sink (stdout by default)
+     */
+    private final Output output;
+
+    /**
+     * Build {@link Grep} instance and start search with a {@link SimpleMatcher} strategy
+     *
+     * @param store         File system abstraction implementation
+     * @param containerPath directory path
+     * @param nThreads      Number of thread
+     */
+    public static void plainSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
+        run(store, containerPath, nThreads, new SimpleMatcher(pattern));
     }
 
-    public static void regexSearch(ObjectStore store, String rootDir, String pattern, int nThreads) throws ExecutionException, InterruptedException {
-        run(store, rootDir, nThreads, new RegexMatcher(pattern));
+    /**
+     * Build {@link Grep} instance and start search with a {@link IgnoreCaseMatcher} strategy
+     *
+     * @param store         File system abstraction implementation
+     * @param containerPath directory path
+     * @param nThreads      Number of thread
+     */
+    public static void ignoreCaseSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
+        run(store, containerPath, nThreads, new SimpleMatcher(pattern));
     }
 
-    private static void run(ObjectStore store, String rootDir, int nThreads, Matcher matcher) throws ExecutionException, InterruptedException {
-        buildGrep(store, rootDir, nThreads, matcher)
+    /**
+     * Build {@link Grep} instance and start search with a {@link RegexMatcher} strategy
+     *
+     * @param store         File system abstraction implementation
+     * @param containerPath directory path
+     * @param nThreads      Number of thread
+     */
+    public static void regexSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
+        run(store, containerPath, nThreads, new RegexMatcher(pattern));
+    }
+
+    /**
+     * Build {@link Grep} instance and start search
+     *
+     * @param store         File system abstraction implementation
+     * @param containerPath directory path
+     * @param nThreads      Number of thread
+     * @param matcher       Text search strategy
+     * @return {@link Grep} instance
+     */
+    private static void run(ObjectStore store, String containerPath, int nThreads, Matcher matcher) throws ExecutionException, InterruptedException {
+        buildGrep(store, containerPath, nThreads, matcher)
                 .startAsync()
                 .waitForFinish();
     }
 
-    private static Grep buildGrep(ObjectStore store, String rootDir, int nThreads, Matcher matcher) {
-        return new Grep(store.objectDescriptor(rootDir), nThreads, matcher);
+    /**
+     * Build {@link Grep} instance
+     *
+     * @param store         File system abstraction implementation
+     * @param containerPath directory path
+     * @param nThreads      Number of thread
+     * @param matcher       Text search strategy
+     * @return {@link Grep} instance
+     */
+    private static Grep buildGrep(ObjectStore store, String containerPath, int nThreads, Matcher matcher) {
+        return new Grep(store.objectDescriptor(containerPath), nThreads, matcher);
     }
 
-    public Grep(ObjectDescriptor rootContainer, int nThreads, Matcher matcher) {
-        this.rootContainer = rootContainer;
+    /**
+     * Build {@link Grep} instance
+     *
+     * @param store         File system abstraction implementation
+     * @param containerPath directory path
+     * @param nThreads      Number of thread
+     * @param matcher       Text search strategy
+     */
+    public Grep(ObjectDescriptor containerPath, int nThreads, Matcher matcher) {
+        this.containerPath = containerPath;
         this.matcher = matcher;
         this.output = new StdoutPrinter(new LinuxGrepLineLineFormatter());
 
@@ -81,18 +173,17 @@ public class Grep {
             }
             filesToProcessCounter.decrementAndGet();
 
-            if (storeTraversingFut.isDone()) {
-                // Traversing was finished, wait for the rest of file content search tasks to complete
-                if (filesToProcessCounter.get() == 0) {
-                    shutdownLatch.countDown();
-                }
+            // Traversing was finished, wait for the rest of file content search tasks to complete
+
+            if (storeTraversingFut.isDone() && filesToProcessCounter.get() == 0) {
+                shutdownLatch.countDown();
             }
         });
     }
 
     public Grep startAsync() {
         storeTraversingFut = pool.submit(() -> {
-            DirTraverser.start(rootContainer, this::onObjectFound);
+            DirTraverser.run(containerPath, this::onObjectFound);
         });
 
         return this;
