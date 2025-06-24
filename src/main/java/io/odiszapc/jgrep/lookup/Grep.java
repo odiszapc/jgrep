@@ -47,6 +47,8 @@ public class Grep {
         this.rootContainer = rootContainer;
         this.matcher = matcher;
         this.output = new StdoutPrinter(new LinuxGrepLineLineFormatter());
+
+        // Create a fixed-size thread pool to handle parallel file processing
         this.pool = Executors.newFixedThreadPool(nThreads);
         this.statistics = new Statistics();
     }
@@ -59,16 +61,22 @@ public class Grep {
 
     private void onObjectFound(ObjectDescriptor objectPath) {
         // Encounter a data object
+        // Atomically increment the file counter when a new file is discovered
+        // We will use it as a finish trigger
         filesToProcessCounter.incrementAndGet();
 
         statistics.incFilesProcessed();
 
+        // Submit a new task to the thread pool to process each file concurrently
         pool.submit(() -> {
             try {
+                // Create and run a TextSearch instance for line matching within this file
                 new TextSearch(objectPath, matcher, output, this::onObjectProcessed).run();
+
+                // Accumulate the size of the processed file to the statistics
                 statistics.addBytesProcessed(objectPath.toObject().size());
             } catch (IOException e) {
-                // TODO: do not ignore problematic files
+                // TODO: handle problematic files
                 throw new RuntimeException(e);
             }
             filesToProcessCounter.decrementAndGet();
