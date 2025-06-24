@@ -1,6 +1,6 @@
 # Multi-threaded Grep Tool (Java)
 
-This project implements a recursive, multithreaded Grep-like utility in Java, inspired by the Linux `grep` command.
+This project implements a recursive, multi-threaded Grep-like utility in Java, inspired by the Linux `grep` command.
 
 It searches for lines matching a given pattern in all files under a specified directory.
 
@@ -27,36 +27,39 @@ Grep.plainSearch(store, rootDir, pattern, numThreads);
 Grep.regexSearch(store, rootDir, regexPattern, numThreads);
 ```
 
-## Multithreading Design
-
-* Uses `ExecutorService` to parallelize file reading and matching.
-* Each discovered file is submitted as a task to the thread pool.
-* File content is processed independently using the `TextSearch` class.
-* Statistics are updated using `AtomicInteger` and synchronized methods.
-
-## Clean Code & Testability
-
-* Logic is modular and built on interfaces (`Matcher`, `Output`, etc.)
-* Supports easy extension and testing
-* Avoids using full frameworks (e.g., Spring)
-
-## Design Considerations
+## Design considerations
 
 We traverse directories using a **single thread**. This could be improved in the future, but for local HDDs it's acceptable
   due to the nature of mechanical spindles.
 
 File content is searched in a **multi-threaded** way using a thread pool.
 
-**Scalability**: Thread pool ensures efficient CPU utilization across files.
-
-There is a strong **abstraction layer over the file system**:
+There is a strong abstraction layer over the file system:
 * Files and directories are treated as `Objects`
 * The filesystem is modeled as an `ObjectStore`
 * Directory iteration is abstracted, allowing the same logic to be reused across different storage implementations
 
-**Testability**: Core components are loosely coupled and easily testable in isolation.
+In terms of multithreading the following points were considered:
 
-## Tests
+* Uses `ExecutorService` to parallelize file reading and matching.
+* Each discovered file is submitted as a task to the thread pool.
+* File content is processed independently using the `TextSearch` class.
+* Statistics are updated using `AtomicInteger` and synchronized methods.
+
+Thread pool ensures efficient CPU utilization across files.
+
+## Testability
+
+Core components are loosely coupled and easily testable in isolation.
+
+As we have an abstraction layer over different kind of components
+
+* Filesystem — `ObjectStore`
+* File path — `ObjectDescriptor`
+* File and InputStream — `ObjectData`
+* Directory iterator — `ObjectsIterable`
+
+Every single layer of this architecture can be tested independently.
 
 Basic unit tests are provided for:
 
@@ -69,11 +72,12 @@ To run tests:
 mvn test
 ```
 
-## What to Improve
+## What to improve
 
 * Handle file access failures more gracefully (e.g., permissions, encoding issues)
 * Implement an AWS S3-backed `ObjectStore` — the abstractions already support this
 * Use Lombok to reduce boilerplate in POJOs
+* Consider deep test agains virtual directory tree to catch symlinks, deep level of directories, etc
 * Improve exception handling (rethink use of checked exceptions)
 * Parse parts of each object in parallel, can be reasonable for small number of very big objects, `ObjectPartititon` abstraction is needed then.
-* Design a **distributed grep** that runs across multiple machines with coordination via Consul or Zookeeper
+* Design a **distributed version of grep** that runs across multiple machines with coordination via Consul or Zookeeper
