@@ -7,10 +7,10 @@ It searches for lines matching a given pattern in all files under a specified di
 ## Features
 
 - Recursively searches all files in a directory
-- Supports plain string and regex matching
+- Supports both plain string and regular expression matching
 - Uses a thread pool to parallelize file processing
-- Prints results in `filename:line_number:line` format
-- Tracks statistics like matched lines, processed bytes/files
+- Print results in `filename:line_number:line` format
+- Tracks statistics such as matched lines, processed bytes, and files
 
 ## Usage
 
@@ -25,38 +25,40 @@ Or programmatically:
 ```java
 Grep.plainSearch(store, rootDir, pattern, numThreads);
 Grep.regexSearch(store, rootDir, regexPattern, numThreads);
+Grep.ignireCaseSearch(store, rootDir, regexPattern, numThreads);
 ```
 
-## Design considerations
+## Design Considerations
 
-We traverse directories using a **single thread**. This could be improved in the future, but for local HDDs it's acceptable
-  due to the nature of mechanical spindles.
-
-File content is searched in a **multi-threaded** way using a thread pool.
-
-There is a strong abstraction layer over the file system:
+* Directory traversal is performed using a **single thread**. This could be optimized in the future,
+  but for local HDDs it's sufficient due to the physical limitations of mechanical spindles.
+* File content is searched in a **multi-threaded** manner using a thread pool.
+* A strong abstraction layer exists over the file system:
 * Files and directories are treated as `Objects`
-* The filesystem is modeled as an `ObjectStore`
-* Directory iteration is abstracted, allowing the same logic to be reused across different storage implementations
+* The file system is modeled via the `ObjectStore` interface
+* Directory iteration is abstracted, allowing reuse across different storage implementations
 
-In terms of multithreading the following points were considered:
+## Multithreading
 
-* Uses `ExecutorService` to parallelize file reading and matching.
-* Each discovered file is submitted as a task to the thread pool.
-* File content is processed independently using the `TextSearch` class.
-* Statistics are updated using `AtomicInteger` and synchronized methods.
+* `ExecutorService` is used to parallelize file reading and line matching
+* Each discovered file is submitted as a task to the thread pool
+* File content is processed independently using the `TextSearch` class
+* Statistics are updated using `AtomicInteger` and synchronized methods
 
-Thread pool ensures efficient CPU utilization across files.
+The thread pool ensures efficient CPU utilization when processing multiple files.
+
+The process of traversing over the directory hierarchy was considered to be implemented in a single thread.
+It can be improved if we want to travers over distributed remote file tree like S3 buckets
 
 ## Testability
 
 Core components are loosely coupled and easily testable in isolation.
 
-As we have an abstraction layer over different kind of components
+Thanks to the abstraction layers, each component can be independently tested:
 
-* Filesystem — `ObjectStore`
+* File system — `ObjectStore`
 * File path — `ObjectDescriptor`
-* File and InputStream — `ObjectData`
+* File and input stream — `ObjectData`
 * Directory iterator — `ObjectsIterable`
 
 Every single layer of this architecture can be tested independently.
@@ -64,7 +66,7 @@ Every single layer of this architecture can be tested independently.
 Basic unit tests are provided for:
 
 * Matchers (`SimpleMatcher`, `RegexMatcher`)
-* TextSearch (for line matching and output behavior)
+* `TextSearch` (for line matching and output handling)
 
 To run tests:
 
@@ -72,12 +74,12 @@ To run tests:
 mvn test
 ```
 
-## What to improve
+## What Could Be Improved
 
-* Handle file access failures more gracefully (e.g., permissions, encoding issues)
-* Implement an AWS S3-backed `ObjectStore` — the abstractions already support this
+* Handle file access failures more gracefully (e.g., permission errors, encoding issues)
+* Implement an AWS S3-backed `ObjectStore` — the current abstractions support this
 * Use Lombok to reduce boilerplate in POJOs
-* Consider deep test agains virtual directory tree to catch symlinks, deep level of directories, etc
-* Improve exception handling (rethink use of checked exceptions)
-* Parse parts of each object in parallel, can be reasonable for small number of very big objects, `ObjectPartititon` abstraction is needed then.
-* Design a **distributed version of grep** that runs across multiple machines with coordination via Consul or Zookeeper
+* Create deep tests using virtual directory trees to detect issues with symlinks, deeply nested directories, etc.
+* Improve exception handling and reconsider the use of checked exceptions
+* Allow parallel parsing of object parts — useful for a small number of very large files; this would require an `ObjectPartition` abstraction
+* Design a **distributed grep** version that can run across multiple machines with coordination via Consul or Zookeeper
