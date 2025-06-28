@@ -5,6 +5,8 @@ import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.odiszapc.jgrep.fs.local.FileSystemStore;
 import io.odiszapc.jgrep.match.ContainsMatcher;
+import io.odiszapc.jgrep.stats.Statistics;
+import io.odiszapc.jgrep.stats.StatisticsPrinter;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -14,9 +16,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GrepTest {
+    private static class NopeStatPrinter implements StatisticsPrinter {
+
+        public Statistics stats;
+
+        @Override
+        public void print(Statistics statistics) {
+            stats = statistics;
+        }
+    }
 
     /**
      * 1. Build in-memory filesystem
@@ -26,18 +38,25 @@ public class GrepTest {
     @Test
     void grepTest() throws ExecutionException, InterruptedException, IOException {
         final MockOutputCollector output = new MockOutputCollector();
+        final NopeStatPrinter statCollector = new NopeStatPrinter();
         final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 
+        // Prepare dir/file hierarchy
         final Path directory = fs.getPath("/foo");
         Files.createDirectory(directory);
-
-        final Path file = directory.resolve("hello.txt"); // Write to /foo/hello.txt
+        final Path file = directory.resolve("hello.txt");
         Files.write(file, ImmutableList.of("hello world"), StandardCharsets.UTF_8);
 
-        Grep.create(new FileSystemStore(fs), "/foo", 4, new ContainsMatcher("hello"), output)
+        // Run grep
+        Grep.create(new FileSystemStore(fs), "/foo", 4, new ContainsMatcher("hello"), output, statCollector)
                 .startAsync()
                 .waitForFinish();
 
         assertTrue(output.contains("hello.txt:1:hello world"));
+
+        assertEquals(1, statCollector.stats.linesMatched());
+        assertEquals(Files.size(file), statCollector.stats.bytesProcessed());
+        assertEquals(1, statCollector.stats.linesProcessed());
+        assertEquals(1, statCollector.stats.filesProcessed());
     }
 }

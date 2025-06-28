@@ -18,8 +18,6 @@ class MockOutputCollector implements OutputPrinter {
     public void accept(LineMatch lineMatch) {
         final String formattedEntry = new LinuxGrepLineLineFormatter().format(lineMatch);
         matches.add(formattedEntry);
-
-        System.out.println(formattedEntry);
     }
 
     boolean contains(String line) {

@@ -25,16 +25,16 @@ public class ObjectTreeWalker {
      * Do it recursively.
      *
      * @param containerPath path to parent container
-     * @param objectHandler invoked each time we encounter an object (file)
+     * @param visitor       invoked each time we encounter an object (file)
      */
     private void walk(ObjectDescriptor containerPath,
-                      ObjectHandler objectHandler) throws IOException {
+                      ObjectVisitor visitor) throws IOException {
         try (ObjectsIterable<?> objects = containerPath.children()) {
             for (ObjectDescriptor object : objects) {
                 if (object.isContainer()) {
-                    walk(object, objectHandler);
+                    walk(object, visitor);
                 } else {
-                    objectHandler.process(object);
+                    visitor.process(object);
                 }
             }
         }
@@ -44,20 +44,20 @@ public class ObjectTreeWalker {
      * Iterate over container children (which are files in case of directory)
      *
      * @param containerPath path to parent container
-     * @param objectHandler invoked each time we encounter an object (file)
+     * @param objectVisitor invoked each time we encounter an object (file)
      */
-    public static void run(ObjectDescriptor containerPath, ObjectHandler objectHandler) {
-        new ObjectTreeWalker(containerPath).run(objectHandler);
+    public static void run(ObjectDescriptor containerPath, ObjectVisitor objectVisitor) {
+        new ObjectTreeWalker(containerPath).run(objectVisitor);
     }
 
     /**
      * Iterate over container children (which are files in case of directory)
      *
-     * @param objectHandler invoked each time we encounter an object (file)
+     * @param objectVisitor invoked each time we encounter an object (file)
      */
-    public void run(ObjectHandler objectHandler) {
+    public void run(ObjectVisitor objectVisitor) {
         try {
-            walk(parentContainer, objectHandler);
+            walk(parentContainer, objectVisitor);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

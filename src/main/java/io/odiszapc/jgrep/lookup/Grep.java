@@ -10,7 +10,8 @@ import io.odiszapc.jgrep.output.LinuxGrepLineLineFormatter;
 import io.odiszapc.jgrep.output.OutputPrinter;
 import io.odiszapc.jgrep.output.StdoutPrinter;
 import io.odiszapc.jgrep.stats.Statistics;
-import io.odiszapc.jgrep.stats.StatisticsFormatter;
+import io.odiszapc.jgrep.stats.StatisticsPrinter;
+import io.odiszapc.jgrep.stats.StdoutStatisticPrinter;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -74,7 +75,12 @@ public class Grep {
      */
     private final OutputPrinter output;
 
+    StatisticsPrinter statisticsPrinter;
+
     private final static OutputPrinter stdout = new StdoutPrinter(new LinuxGrepLineLineFormatter());
+
+    private final static StatisticsPrinter statStdout = new StdoutStatisticPrinter();
+
 
     /**
      * Build {@link Grep} instance and start search with a {@link ContainsMatcher} strategy
@@ -84,7 +90,7 @@ public class Grep {
      * @param nThreads      Number of thread
      */
     public static void plainSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
-        run(store, containerPath, nThreads, new ContainsMatcher(pattern), stdout);
+        run(store, containerPath, nThreads, new ContainsMatcher(pattern), stdout, statStdout);
     }
 
     /**
@@ -95,7 +101,7 @@ public class Grep {
      * @param nThreads      Number of thread
      */
     public static void ignoreCaseSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
-        run(store, containerPath, nThreads, new ContainsMatcher(pattern), stdout);
+        run(store, containerPath, nThreads, new ContainsMatcher(pattern), stdout, statStdout);
     }
 
     /**
@@ -106,7 +112,7 @@ public class Grep {
      * @param nThreads      Number of thread
      */
     public static void regexSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
-        run(store, containerPath, nThreads, new RegexMatcher(pattern), stdout);
+        run(store, containerPath, nThreads, new RegexMatcher(pattern), stdout, statStdout);
     }
 
     /**
@@ -116,14 +122,14 @@ public class Grep {
      * @param containerPath directory path
      * @param nThreads      Number of thread
      * @param matcher       Text search strategy
-     * @return {@link Grep} instance
      */
     private static void run(ObjectStore store,
                             String containerPath,
                             int nThreads,
                             Matcher matcher,
-                            OutputPrinter output) throws ExecutionException, InterruptedException {
-        create(store, containerPath, nThreads, matcher, output)
+                            OutputPrinter output,
+                            StatisticsPrinter statisticsPrinter) throws ExecutionException, InterruptedException {
+        create(store, containerPath, nThreads, matcher, output, statisticsPrinter)
                 .startAsync()
                 .waitForFinish();
     }
@@ -142,8 +148,9 @@ public class Grep {
                               String containerPath,
                               int nThreads,
                               Matcher matcher,
-                              OutputPrinter output) {
-        return new Grep(store.objectDescriptor(containerPath), nThreads, matcher, output);
+                              OutputPrinter output,
+                              StatisticsPrinter statisticsPrinter) {
+        return new Grep(store.objectDescriptor(containerPath), nThreads, matcher, output, statisticsPrinter);
     }
 
     /**
@@ -153,10 +160,15 @@ public class Grep {
      * @param nThreads      Number of thread
      * @param matcher       Text search strategy
      */
-    public Grep(ObjectDescriptor containerPath, int nThreads, Matcher matcher, OutputPrinter output) {
+    public Grep(ObjectDescriptor containerPath,
+                int nThreads,
+                Matcher matcher,
+                OutputPrinter output,
+                StatisticsPrinter statisticsPrinter) {
         this.containerPath = containerPath;
         this.matcher = matcher;
         this.output = output;
+        this.statisticsPrinter = statisticsPrinter;
 
         // Create a fixed-size thread pool to handle parallel file processing
         this.pool = Executors.newFixedThreadPool(nThreads);
@@ -216,10 +228,6 @@ public class Grep {
         pool.shutdown();
 
         // Optionally, display stats
-        outputStatistics();
-    }
-
-    private void outputStatistics() {
-        StatisticsFormatter.print(statistics);
+        statisticsPrinter.print(statistics);
     }
 }
