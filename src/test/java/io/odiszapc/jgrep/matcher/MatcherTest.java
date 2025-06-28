@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class MatcherTest {
     @Test
     public void testSimpleMatcher() {
-        Matcher matcher = new SimpleMatcher("hello");
+        Matcher matcher = new ContainsMatcher("hello");
         assertTrue(matcher.match("hello world"));
         assertFalse(matcher.match("goodbye world"));
     }

@@ -5,7 +5,7 @@ import io.odiszapc.jgrep.fs.ObjectStore;
 import io.odiszapc.jgrep.matcher.IgnoreCaseMatcher;
 import io.odiszapc.jgrep.matcher.Matcher;
 import io.odiszapc.jgrep.matcher.RegexMatcher;
-import io.odiszapc.jgrep.matcher.SimpleMatcher;
+import io.odiszapc.jgrep.matcher.ContainsMatcher;
 import io.odiszapc.jgrep.output.LinuxGrepLineLineFormatter;
 import io.odiszapc.jgrep.output.OutputPrinter;
 import io.odiszapc.jgrep.output.StdoutPrinter;
@@ -56,7 +56,7 @@ public class Grep {
 
     /**
      * Strategy for searching inside the file:
-     * - {@link SimpleMatcher}
+     * - {@link ContainsMatcher}
      * - {@link IgnoreCaseMatcher}
      * - {@link RegexMatcher}
      */
@@ -77,14 +77,14 @@ public class Grep {
     private final static OutputPrinter stdout = new StdoutPrinter(new LinuxGrepLineLineFormatter());
 
     /**
-     * Build {@link Grep} instance and start search with a {@link SimpleMatcher} strategy
+     * Build {@link Grep} instance and start search with a {@link ContainsMatcher} strategy
      *
      * @param store         File system abstraction implementation
      * @param containerPath directory path
      * @param nThreads      Number of thread
      */
     public static void plainSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
-        run(store, containerPath, nThreads, new SimpleMatcher(pattern), stdout);
+        run(store, containerPath, nThreads, new ContainsMatcher(pattern), stdout);
     }
 
     /**
@@ -95,7 +95,7 @@ public class Grep {
      * @param nThreads      Number of thread
      */
     public static void ignoreCaseSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
-        run(store, containerPath, nThreads, new SimpleMatcher(pattern), stdout);
+        run(store, containerPath, nThreads, new ContainsMatcher(pattern), stdout);
     }
 
     /**

@@ -1,6 +1,6 @@
 package io.odiszapc.jgrep.matcher;
 
-public class IgnoreCaseMatcher extends SimpleMatcher {
+public class IgnoreCaseMatcher extends ContainsMatcher {
     public IgnoreCaseMatcher(String pattern) {
         super(pattern.toLowerCase());
     }

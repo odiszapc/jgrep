@@ -1,9 +1,9 @@
 package io.odiszapc.jgrep.matcher;
 
-public class SimpleMatcher implements Matcher {
+public class ContainsMatcher implements Matcher {
     protected final String pattern;
 
-    public SimpleMatcher(String pattern) {
+    public ContainsMatcher(String pattern) {
         this.pattern = pattern;
     }
 

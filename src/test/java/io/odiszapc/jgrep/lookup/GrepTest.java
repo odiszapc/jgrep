@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.odiszapc.jgrep.fs.local.FileSystemStore;
-import io.odiszapc.jgrep.matcher.SimpleMatcher;
+import io.odiszapc.jgrep.matcher.ContainsMatcher;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -34,7 +34,7 @@ public class GrepTest {
         final Path file = directory.resolve("hello.txt"); // Write to /foo/hello.txt
         Files.write(file, ImmutableList.of("hello world"), StandardCharsets.UTF_8);
 
-        Grep.create(new FileSystemStore(fs), "/foo", 4, new SimpleMatcher("hello"), output)
+        Grep.create(new FileSystemStore(fs), "/foo", 4, new ContainsMatcher("hello"), output)
                 .startAsync()
                 .waitForFinish();
 
