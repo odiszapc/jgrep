@@ -23,18 +23,7 @@ public class FileSystemObjects implements ObjectsIterable<FileSystemDescriptor>,
     /**
      * Construct iterator for given directory
      *
-     * @param directory local directory descriptor
-     * @throws IOException
-     */
-    public FileSystemObjects(FileSystemDescriptor directory) throws IOException {
-        this(directory.getPath());
-    }
-
-    /**
-     * Construct iterator for given directory
-     *
      * @param directory local directory {@link Path}
-     * @throws IOException
      */
     public FileSystemObjects(Path directory) throws IOException {
         directoryStream = Files.newDirectoryStream(directory);
@@ -47,14 +36,11 @@ public class FileSystemObjects implements ObjectsIterable<FileSystemDescriptor>,
      */
     @Override
     public Iterator<FileSystemDescriptor> it() {
-        return StreamSupport.stream(directoryStream.spliterator(), false)
-                .map(FileSystemDescriptor::of).iterator();
+        return StreamSupport.stream(directoryStream.spliterator(), false).map(FileSystemDescriptor::of).iterator();
     }
 
     /**
      * Close directory {@link java.util.stream.Stream}
-     *
-     * @throws IOException
      */
     @Override
     public void close() throws IOException {

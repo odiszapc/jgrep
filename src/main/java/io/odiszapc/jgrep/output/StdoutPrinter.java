@@ -1,6 +1,6 @@
 package io.odiszapc.jgrep.output;
 
-import io.odiszapc.jgrep.pojo.LineMatch;
+import io.odiszapc.jgrep.match.LineMatch;
 
 /**
  * Output to stdout

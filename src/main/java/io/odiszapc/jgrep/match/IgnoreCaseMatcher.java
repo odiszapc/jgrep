@@ -1,4 +1,4 @@
-package io.odiszapc.jgrep.matcher;
+package io.odiszapc.jgrep.match;
 
 public class IgnoreCaseMatcher extends ContainsMatcher {
     public IgnoreCaseMatcher(String pattern) {

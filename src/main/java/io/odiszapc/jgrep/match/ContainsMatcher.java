@@ -1,4 +1,4 @@
-package io.odiszapc.jgrep.matcher;
+package io.odiszapc.jgrep.match;
 
 public class ContainsMatcher implements Matcher {
     protected final String pattern;

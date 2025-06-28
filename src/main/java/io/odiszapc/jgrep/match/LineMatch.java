@@ -1,4 +1,4 @@
-package io.odiszapc.jgrep.pojo;
+package io.odiszapc.jgrep.match;
 
 import io.odiszapc.jgrep.fs.ObjectDescriptor;
 

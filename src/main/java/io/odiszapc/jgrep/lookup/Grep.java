@@ -2,10 +2,10 @@ package io.odiszapc.jgrep.lookup;
 
 import io.odiszapc.jgrep.fs.ObjectDescriptor;
 import io.odiszapc.jgrep.fs.ObjectStore;
-import io.odiszapc.jgrep.matcher.IgnoreCaseMatcher;
-import io.odiszapc.jgrep.matcher.Matcher;
-import io.odiszapc.jgrep.matcher.RegexMatcher;
-import io.odiszapc.jgrep.matcher.ContainsMatcher;
+import io.odiszapc.jgrep.match.ContainsMatcher;
+import io.odiszapc.jgrep.match.IgnoreCaseMatcher;
+import io.odiszapc.jgrep.match.Matcher;
+import io.odiszapc.jgrep.match.RegexMatcher;
 import io.odiszapc.jgrep.output.LinuxGrepLineLineFormatter;
 import io.odiszapc.jgrep.output.OutputPrinter;
 import io.odiszapc.jgrep.output.StdoutPrinter;

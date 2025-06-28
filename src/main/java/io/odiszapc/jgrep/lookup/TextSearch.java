@@ -1,9 +1,9 @@
 package io.odiszapc.jgrep.lookup;
 
 import io.odiszapc.jgrep.fs.ObjectDescriptor;
-import io.odiszapc.jgrep.matcher.Matcher;
+import io.odiszapc.jgrep.match.LineMatch;
+import io.odiszapc.jgrep.match.Matcher;
 import io.odiszapc.jgrep.output.OutputPrinter;
-import io.odiszapc.jgrep.pojo.LineMatch;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

@@ -1,16 +1,16 @@
 package io.odiszapc.jgrep.lookup;
 
+import io.odiszapc.jgrep.match.LineMatch;
 import io.odiszapc.jgrep.output.LinuxGrepLineLineFormatter;
 import io.odiszapc.jgrep.output.OutputPrinter;
-import io.odiszapc.jgrep.pojo.LineMatch;
 
 import java.util.ArrayList;
 
-class MockOutputPrinter implements OutputPrinter {
+class MockOutputCollector implements OutputPrinter {
 
     ArrayList<String> matches;
 
-    public MockOutputPrinter() {
+    public MockOutputCollector() {
         matches = new ArrayList<>();
     }
 

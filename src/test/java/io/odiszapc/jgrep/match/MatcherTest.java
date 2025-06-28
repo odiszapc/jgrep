@@ -1,4 +1,4 @@
-package io.odiszapc.jgrep.matcher;
+package io.odiszapc.jgrep.match;
 
 import org.junit.jupiter.api.Test;
 

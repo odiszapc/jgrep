@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.odiszapc.jgrep.fs.local.FileSystemStore;
-import io.odiszapc.jgrep.matcher.ContainsMatcher;
+import io.odiszapc.jgrep.match.ContainsMatcher;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -25,7 +25,7 @@ public class GrepTest {
      */
     @Test
     void grepTest() throws ExecutionException, InterruptedException, IOException {
-        final MockOutputPrinter output = new MockOutputPrinter();
+        final MockOutputCollector output = new MockOutputCollector();
         final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 
         final Path directory = fs.getPath("/foo");
