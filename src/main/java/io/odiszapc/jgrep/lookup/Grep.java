@@ -1,18 +1,17 @@
 package io.odiszapc.jgrep.lookup;
 
-import io.odiszapc.jgrep.format.LinuxGrepLineLineFormatter;
 import io.odiszapc.jgrep.fs.ObjectDescriptor;
 import io.odiszapc.jgrep.fs.ObjectStore;
 import io.odiszapc.jgrep.matcher.IgnoreCaseMatcher;
 import io.odiszapc.jgrep.matcher.Matcher;
 import io.odiszapc.jgrep.matcher.RegexMatcher;
 import io.odiszapc.jgrep.matcher.SimpleMatcher;
+import io.odiszapc.jgrep.output.LinuxGrepLineLineFormatter;
 import io.odiszapc.jgrep.output.OutputPrinter;
 import io.odiszapc.jgrep.output.StdoutPrinter;
 import io.odiszapc.jgrep.stats.Statistics;
 import io.odiszapc.jgrep.stats.StatisticsFormatter;
 
-import java.io.IOException;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -22,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Starts recursive directory traversing on a separate thread, and do it in a one thread
  * <p>
  * Each file descriptor is sent over the same thread pool and processed concurrently
- *
+ * <p>
  * Once traversing is done we wait for the rest of the file parsing tasks to complete.
  */
 public class Grep {
@@ -75,6 +74,8 @@ public class Grep {
      */
     private final OutputPrinter output;
 
+    private final static OutputPrinter stdout = new StdoutPrinter(new LinuxGrepLineLineFormatter());
+
     /**
      * Build {@link Grep} instance and start search with a {@link SimpleMatcher} strategy
      *
@@ -83,7 +84,7 @@ public class Grep {
      * @param nThreads      Number of thread
      */
     public static void plainSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
-        run(store, containerPath, nThreads, new SimpleMatcher(pattern));
+        run(store, containerPath, nThreads, new SimpleMatcher(pattern), stdout);
     }
 
     /**
@@ -94,7 +95,7 @@ public class Grep {
      * @param nThreads      Number of thread
      */
     public static void ignoreCaseSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
-        run(store, containerPath, nThreads, new SimpleMatcher(pattern));
+        run(store, containerPath, nThreads, new SimpleMatcher(pattern), stdout);
     }
 
     /**
@@ -105,7 +106,7 @@ public class Grep {
      * @param nThreads      Number of thread
      */
     public static void regexSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
-        run(store, containerPath, nThreads, new RegexMatcher(pattern));
+        run(store, containerPath, nThreads, new RegexMatcher(pattern), stdout);
     }
 
     /**
@@ -117,8 +118,12 @@ public class Grep {
      * @param matcher       Text search strategy
      * @return {@link Grep} instance
      */
-    private static void run(ObjectStore store, String containerPath, int nThreads, Matcher matcher) throws ExecutionException, InterruptedException {
-        buildGrep(store, containerPath, nThreads, matcher)
+    private static void run(ObjectStore store,
+                            String containerPath,
+                            int nThreads,
+                            Matcher matcher,
+                            OutputPrinter output) throws ExecutionException, InterruptedException {
+        create(store, containerPath, nThreads, matcher, output)
                 .startAsync()
                 .waitForFinish();
     }
@@ -130,24 +135,28 @@ public class Grep {
      * @param containerPath directory path
      * @param nThreads      Number of thread
      * @param matcher       Text search strategy
+     * @param output        Output handler
      * @return {@link Grep} instance
      */
-    private static Grep buildGrep(ObjectStore store, String containerPath, int nThreads, Matcher matcher) {
-        return new Grep(store.objectDescriptor(containerPath), nThreads, matcher);
+    public static Grep create(ObjectStore store,
+                              String containerPath,
+                              int nThreads,
+                              Matcher matcher,
+                              OutputPrinter output) {
+        return new Grep(store.objectDescriptor(containerPath), nThreads, matcher, output);
     }
 
     /**
      * Build {@link Grep} instance
      *
-     * @param store         File system abstraction implementation
      * @param containerPath directory path
      * @param nThreads      Number of thread
      * @param matcher       Text search strategy
      */
-    public Grep(ObjectDescriptor containerPath, int nThreads, Matcher matcher) {
+    public Grep(ObjectDescriptor containerPath, int nThreads, Matcher matcher, OutputPrinter output) {
         this.containerPath = containerPath;
         this.matcher = matcher;
-        this.output = new StdoutPrinter(new LinuxGrepLineLineFormatter());
+        this.output = output;
 
         // Create a fixed-size thread pool to handle parallel file processing
         this.pool = Executors.newFixedThreadPool(nThreads);
@@ -160,7 +169,7 @@ public class Grep {
         return null;
     }
 
-    private void onObjectFound(ObjectDescriptor objectPath) {
+    private void onObjectFound(ObjectDescriptor path) {
         // Encounter a data object
         // Atomically increment the file counter when a new file is discovered
         // We will use it as a trigger to await for the process to finish
@@ -172,13 +181,12 @@ public class Grep {
         pool.submit(() -> {
             try {
                 // Create and run a TextSearch instance for line matching within this file
-                new TextSearch(objectPath, matcher, output, this::onObjectProcessed).run();
+                new TextSearch(path, matcher, output, this::onObjectProcessed).run();
 
                 // Accumulate the size of the processed file to the statistics
-                statistics.addBytesProcessed(objectPath.toObject().size());
-            } catch (IOException e) {
-                // TODO: handle problematic files
-                throw new RuntimeException(e);
+                statistics.addBytesProcessed(path.size());
+            } catch (Throwable e) {
+                // TODO: Do not ignore failed files
             }
             filesToProcessCounter.decrementAndGet();
 

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MatcherTest {
-
     @Test
     public void testSimpleMatcher() {
         Matcher matcher = new SimpleMatcher("hello");

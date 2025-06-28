@@ -1,47 +1,45 @@
 package io.odiszapc.jgrep.fs.local;
 
-import io.odiszapc.jgrep.fs.ObjectData;
 import io.odiszapc.jgrep.fs.ObjectDescriptor;
 import io.odiszapc.jgrep.fs.ObjectsIterable;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 /**
  * {@link ObjectDescriptor} implementation for local file system
  */
-public class LocalFsDescriptor implements ObjectDescriptor {
+public class FileSystemDescriptor implements ObjectDescriptor {
     private final Path path;
 
-    public static LocalFsDescriptor of(Path path) {
-        return new LocalFsDescriptor(path);
+    public static FileSystemDescriptor of(Path path) {
+        return new FileSystemDescriptor(path);
     }
 
-    public static LocalFsDescriptor of(String path) {
-        return new LocalFsDescriptor(Path.of(path));
+    public static FileSystemDescriptor of(FileSystem fs, String path) {
+        return new FileSystemDescriptor(fs.getPath(path));
     }
 
     @Override
-    public String objectName() {
+    public String name() {
         return path.getFileName().toString();
     }
 
     @Override
-    public String fullPath() {
-        return path.toAbsolutePath().toString();
+    public long size() throws IOException {
+        return Files.size(path);
     }
 
     @Override
     public ObjectsIterable<? extends ObjectDescriptor> children() throws IOException {
-        return new LocalFsObjects(path);
+        return new FileSystemObjects(path);
     }
 
-    public LocalFsDescriptor(String localPath) {
-        path = Path.of(localPath);
-    }
-
-    public LocalFsDescriptor(Path localPath) {
+    public FileSystemDescriptor(Path localPath) {
         path = localPath;
     }
 
@@ -55,7 +53,7 @@ public class LocalFsDescriptor implements ObjectDescriptor {
     }
 
     @Override
-    public ObjectData toObject() {
-        return new LocalFsObject(path);
+    public InputStream inputStream() throws IOException {
+        return Files.newInputStream(path, StandardOpenOption.READ);
     }
 }

@@ -1,16 +1,17 @@
 package io.odiszapc.jgrep.fs;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public interface ObjectDescriptor {
 
     boolean isContainer();
 
-    ObjectData toObject();
+    InputStream inputStream() throws IOException;
 
-    String objectName();
+    String name();
 
-    String fullPath();
+    long size() throws IOException;
 
     ObjectsIterable<? extends ObjectDescriptor> children() throws IOException;
 

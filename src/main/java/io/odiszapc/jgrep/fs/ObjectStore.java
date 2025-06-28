@@ -1,11 +1,11 @@
 package io.odiszapc.jgrep.fs;
 
-import io.odiszapc.jgrep.fs.local.LocalFileStore;
+import io.odiszapc.jgrep.fs.local.FileSystemStore;
 
 public interface ObjectStore {
     ObjectDescriptor objectDescriptor(String path);
 
     static ObjectStore defaultStore() {
-        return LocalFileStore.instance();
+        return FileSystemStore.defaultFS();
     }
 }

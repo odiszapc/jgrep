@@ -3,17 +3,22 @@ package io.odiszapc.jgrep.fs.local;
 import io.odiszapc.jgrep.fs.ObjectDescriptor;
 import io.odiszapc.jgrep.fs.ObjectStore;
 
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+
 /**
  * Object store implementation for Local (Windows, *nix) file system
  */
-public class LocalFileStore implements ObjectStore {
+public class FileSystemStore implements ObjectStore {
 
-    private static final LocalFileStore instance = new LocalFileStore();
+    private static final FileSystemStore instance = new FileSystemStore(FileSystems.getDefault());
+    private FileSystem fs;
 
-    private LocalFileStore() {
+    public FileSystemStore(FileSystem fs) {
+        this.fs = fs;
     }
 
-    public static LocalFileStore instance() {
+    public static FileSystemStore defaultFS() {
         return instance;
     }
 
@@ -25,6 +30,6 @@ public class LocalFileStore implements ObjectStore {
      */
     @Override
     public ObjectDescriptor objectDescriptor(String objectPath) {
-        return LocalFsDescriptor.of(objectPath);
+        return FileSystemDescriptor.of(fs, objectPath);
     }
 }

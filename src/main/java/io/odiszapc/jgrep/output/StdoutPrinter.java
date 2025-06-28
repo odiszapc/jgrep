@@ -1,6 +1,5 @@
 package io.odiszapc.jgrep.output;
 
-import io.odiszapc.jgrep.format.LineFormatter;
 import io.odiszapc.jgrep.pojo.LineMatch;
 
 /**

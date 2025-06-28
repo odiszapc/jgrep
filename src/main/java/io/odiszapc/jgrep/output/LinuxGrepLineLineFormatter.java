@@ -1,4 +1,4 @@
-package io.odiszapc.jgrep.format;
+package io.odiszapc.jgrep.output;
 
 import io.odiszapc.jgrep.pojo.LineMatch;
 
@@ -14,6 +14,6 @@ public class LinuxGrepLineLineFormatter implements LineFormatter {
      * @return String formatted
      */
     public String format(LineMatch match) {
-        return match.getObjectPath().objectName() + ':' + match.getLineNumber() + ':' + match.getLine();
+        return match.getObjectPath().name() + ':' + match.getLineNumber() + ':' + match.getLine();
     }
 }

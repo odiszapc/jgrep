@@ -17,7 +17,7 @@ import java.util.stream.StreamSupport;
  * <p>
  * Once created opens a {@link java.util.stream.Stream}
  */
-public class LocalFsObjects implements ObjectsIterable<LocalFsDescriptor>, Closeable {
+public class FileSystemObjects implements ObjectsIterable<FileSystemDescriptor>, Closeable {
     private final DirectoryStream<Path> directoryStream;
 
     /**
@@ -26,7 +26,7 @@ public class LocalFsObjects implements ObjectsIterable<LocalFsDescriptor>, Close
      * @param directory local directory descriptor
      * @throws IOException
      */
-    public LocalFsObjects(LocalFsDescriptor directory) throws IOException {
+    public FileSystemObjects(FileSystemDescriptor directory) throws IOException {
         this(directory.getPath());
     }
 
@@ -36,19 +36,19 @@ public class LocalFsObjects implements ObjectsIterable<LocalFsDescriptor>, Close
      * @param directory local directory {@link Path}
      * @throws IOException
      */
-    public LocalFsObjects(Path directory) throws IOException {
+    public FileSystemObjects(Path directory) throws IOException {
         directoryStream = Files.newDirectoryStream(directory);
     }
 
     /**
      * Returns iterator for given directory
      *
-     * @return instance of {@link Iterator<LocalFsDescriptor>}
+     * @return instance of {@link Iterator< FileSystemDescriptor >}
      */
     @Override
-    public Iterator<LocalFsDescriptor> it() {
+    public Iterator<FileSystemDescriptor> it() {
         return StreamSupport.stream(directoryStream.spliterator(), false)
-                .map(LocalFsDescriptor::of).iterator();
+                .map(FileSystemDescriptor::of).iterator();
     }
 
     /**

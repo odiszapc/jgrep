@@ -10,11 +10,11 @@ import java.nio.file.Path;
 /**
  * {@link ObjectData} abstraction implementation for local file system
  */
-public class LocalFsObject implements ObjectData {
+public class FileSystemObject implements ObjectData {
 
     private final Path filePath;
 
-    public LocalFsObject(Path filePath) {
+    public FileSystemObject(Path filePath) {
         this.filePath = filePath;
     }
 

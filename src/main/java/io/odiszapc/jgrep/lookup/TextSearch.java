@@ -33,7 +33,8 @@ public class TextSearch {
      * Start search for single file
      */
     public void run() throws IOException {
-        final Scanner lines = new Scanner(path.toObject().is(), StandardCharsets.UTF_8);
+
+        final Scanner lines = new Scanner(path.inputStream(), StandardCharsets.UTF_8);
 
         int linesProcessed = 0;
         int linesMatched = 0;

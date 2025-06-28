@@ -66,7 +66,7 @@ Every single layer of this architecture can be tested independently.
 Basic unit tests are provided for:
 
 * Matchers (`SimpleMatcher`, `RegexMatcher`)
-* `TextSearch` (for line matching and output handling)
+* `Grep` tool (for line matching and output handling)
 
 To run tests:
 
