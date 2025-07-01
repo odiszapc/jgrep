@@ -16,7 +16,7 @@ It searches for lines matching a given pattern in all files under a specified di
 
 Run the application using the `Main` class:
 
-```bash
+```shell
 java -cp target/grep-java.jar io.odiszapc.jgrep.Main /path/to/dir "searchPattern"
 ````
 
@@ -65,20 +65,23 @@ JGrep.create(path -> {
 
 ## Design Considerations
 
-* Directory traversal is performed using a **single thread**. This could be optimized in the future,
-  but for local HDDs it's sufficient due to the physical limitations of mechanical spindles.
+* Directory traversal is performed using a **single thread**...
+
+  This could be optimized in the future,
+  but for regular HDDs it's sufficient due to the physical limitations of mechanical spindles.
 * File content is searched in a **multi-threaded** manner using a thread pool.
-* A strong abstraction layer exists over the file system:
-* Files and directories are treated as `Objects`
-* The file system is modeled via the `ObjectStore` interface
-* Directory iteration is abstracted, allowing reuse across different storage implementations
+* A strong abstraction layer designed over the file system:
+  * Files and directories are treated as `Objects` using `ObjectDescriptor`
+  * The file system is modeled via the `ObjectStore` interface
+  * The `FileSystemStore` implementation of `ObjectStore` is written for local filesystem
+  * Directory traversing is abstracted with `ObjectTreeWalker` and `ObjectVisitor`, allowing reuse across different storage implementations
 
 ## Multithreading
 
 * `ExecutorService` is used to parallelize file reading and line matching
 * Each discovered file is submitted as a task to the thread pool
 * File content is processed independently using the `TextSearch` class
-* Statistics are updated using `AtomicInteger` and synchronized methods
+* Statistics are updated using `AtomicInteger` to avoid race condition
 
 The thread pool ensures efficient CPU utilization when processing multiple files.
 
@@ -105,7 +108,7 @@ Basic unit tests are provided for:
 
 To run tests:
 
-```bash
+```shell
 mvn test
 ```
 
