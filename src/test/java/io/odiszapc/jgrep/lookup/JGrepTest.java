@@ -3,6 +3,7 @@ package io.odiszapc.jgrep.lookup;
 import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import io.odiszapc.jgrep.JGrep;
 import io.odiszapc.jgrep.fs.local.FileSystemStore;
 import io.odiszapc.jgrep.match.ContainsMatcher;
 import io.odiszapc.jgrep.stats.Statistics;
@@ -14,12 +15,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class GrepTest {
+public class JGrepTest {
     private static class NopeStatPrinter implements StatisticsPrinter {
 
         public Statistics stats;
@@ -36,10 +36,11 @@ public class GrepTest {
      * 3. Grep over virtual fs
      */
     @Test
-    void grepTest() throws ExecutionException, InterruptedException, IOException {
+    void grepTest() throws IOException {
         final MockOutputCollector output = new MockOutputCollector();
         final NopeStatPrinter statCollector = new NopeStatPrinter();
         final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+        final ContainsMatcher matcher = new ContainsMatcher("hello");
 
         // Prepare dir/file hierarchy
         final Path directory = fs.getPath("/foo");
@@ -48,7 +49,7 @@ public class GrepTest {
         Files.write(file, ImmutableList.of("hello world"), StandardCharsets.UTF_8);
 
         // Run grep
-        Grep.create(new FileSystemStore(fs), "/foo", 4, new ContainsMatcher("hello"), output, statCollector)
+        JGrep.create(new FileSystemStore(fs), "/foo", 4, matcher, output, statCollector)
                 .startAsync()
                 .waitForFinish();
 

@@ -23,9 +23,51 @@ java -cp target/grep-java.jar io.odiszapc.jgrep.Main /path/to/dir "searchPattern
 Or programmatically:
 
 ```java
-Grep.plainSearch(store,rootDir,pattern,numThreads);
-        Grep.regexSearch(store,rootDir,regexPattern,numThreads);
-        Grep.ignireCaseSearch(store,rootDir,regexPattern,numThreads);
+JGrep.plainSearch(store, rootDir, pattern, numThreads);
+```
+
+## Usage examples:
+
+```java
+// Contains string search
+JGrep.plainSearch(FileSystemStore.defaultFS(), "/", "foo", 4);
+
+// Regex search
+JGrep.regexSearch(FileSystemStore.defaultFS(), "/", "/foo/", 4);
+
+// Search ignoring letter case
+JGrep.ignireCaseSearch(FileSystemStore.defaultFS(), "/", "/FOO/", 4);
+```
+
+    public static JGrep create(ObjectStore store,
+                               String containerPath,
+                               int nThreads,
+                               Matcher matcher,
+                               OutputPrinter output,
+                               StatisticsPrinter statisticsPrinter) {
+
+You can customize `ObjectStore implementation as well as provide your own versions of
+`Matcher`, `OutputPrinter` and `StatisticsPrinter`, lambda-driven example:
+
+```java
+JGrep.create(path -> {
+    // Use local file system by default
+    return FileSystemDescriptor.of(Path.of(path));
+}, "/foo", 4, line -> {
+    // Match every line
+    return true;
+}, lineMatch -> {
+    // Print matched line to stdout
+    System.out.println(lineMatch.toString());
+}, statistics -> {
+    // Print numbers
+    statistics.filesProcessed();
+    statistics.linesProcessed();
+    statistics.bytesProcessed();
+    statistics.linesMatched();
+})
+  .startAsync()
+  .waitForFinish();
 ```
 
 ## Design Considerations

@@ -43,10 +43,6 @@ public class FileSystemDescriptor implements ObjectDescriptor {
         path = localPath;
     }
 
-    public Path getPath() {
-        return path;
-    }
-
     @Override
     public boolean isContainer() {
         return Files.isDirectory(path);

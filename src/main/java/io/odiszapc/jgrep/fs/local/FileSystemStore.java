@@ -10,7 +10,6 @@ import java.nio.file.FileSystems;
  * Object store implementation for Local (Windows, *nix) file system
  */
 public class FileSystemStore implements ObjectStore {
-
     private static final FileSystemStore instance = new FileSystemStore(FileSystems.getDefault());
     private FileSystem fs;
 

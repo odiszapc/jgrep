@@ -1,7 +1,9 @@
-package io.odiszapc.jgrep.lookup;
+package io.odiszapc.jgrep;
 
 import io.odiszapc.jgrep.fs.ObjectDescriptor;
 import io.odiszapc.jgrep.fs.ObjectStore;
+import io.odiszapc.jgrep.lookup.ObjectTreeWalker;
+import io.odiszapc.jgrep.lookup.TextSearch;
 import io.odiszapc.jgrep.match.ContainsMatcher;
 import io.odiszapc.jgrep.match.IgnoreCaseMatcher;
 import io.odiszapc.jgrep.match.Matcher;
@@ -25,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * Once traversing is done we wait for the rest of the file parsing tasks to complete.
  */
-public class Grep {
+public class JGrep {
     /**
      * Common thread pool that is used for
      * - Traversing directory hierarchy
@@ -83,40 +85,40 @@ public class Grep {
 
 
     /**
-     * Build {@link Grep} instance and start search with a {@link ContainsMatcher} strategy
+     * Build {@link JGrep} instance and start search with a {@link ContainsMatcher} strategy
      *
      * @param store         File system abstraction implementation
      * @param containerPath directory path
      * @param nThreads      Number of thread
      */
-    public static void plainSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
+    public static void plainSearch(ObjectStore store, String containerPath, String pattern, int nThreads) {
         run(store, containerPath, nThreads, new ContainsMatcher(pattern), stdout, statStdout);
     }
 
     /**
-     * Build {@link Grep} instance and start search with a {@link IgnoreCaseMatcher} strategy
+     * Build {@link JGrep} instance and start search with a {@link IgnoreCaseMatcher} strategy
      *
      * @param store         File system abstraction implementation
      * @param containerPath directory path
      * @param nThreads      Number of thread
      */
-    public static void ignoreCaseSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
+    public static void ignoreCaseSearch(ObjectStore store, String containerPath, String pattern, int nThreads) {
         run(store, containerPath, nThreads, new ContainsMatcher(pattern), stdout, statStdout);
     }
 
     /**
-     * Build {@link Grep} instance and start search with a {@link RegexMatcher} strategy
+     * Build {@link JGrep} instance and start search with a {@link RegexMatcher} strategy
      *
      * @param store         File system abstraction implementation
      * @param containerPath directory path
      * @param nThreads      Number of thread
      */
-    public static void regexSearch(ObjectStore store, String containerPath, String pattern, int nThreads) throws ExecutionException, InterruptedException {
+    public static void regexSearch(ObjectStore store, String containerPath, String pattern, int nThreads) {
         run(store, containerPath, nThreads, new RegexMatcher(pattern), stdout, statStdout);
     }
 
     /**
-     * Build {@link Grep} instance and start search
+     * Build {@link JGrep} instance and start search
      *
      * @param store         File system abstraction implementation
      * @param containerPath directory path
@@ -128,43 +130,43 @@ public class Grep {
                             int nThreads,
                             Matcher matcher,
                             OutputPrinter output,
-                            StatisticsPrinter statisticsPrinter) throws ExecutionException, InterruptedException {
+                            StatisticsPrinter statisticsPrinter) {
         create(store, containerPath, nThreads, matcher, output, statisticsPrinter)
                 .startAsync()
                 .waitForFinish();
     }
 
     /**
-     * Build {@link Grep} instance
+     * Build {@link JGrep} instance
      *
      * @param store         File system abstraction implementation
      * @param containerPath directory path
      * @param nThreads      Number of thread
      * @param matcher       Text search strategy
      * @param output        Output handler
-     * @return {@link Grep} instance
+     * @return {@link JGrep} instance
      */
-    public static Grep create(ObjectStore store,
-                              String containerPath,
-                              int nThreads,
-                              Matcher matcher,
-                              OutputPrinter output,
-                              StatisticsPrinter statisticsPrinter) {
-        return new Grep(store.objectDescriptor(containerPath), nThreads, matcher, output, statisticsPrinter);
+    public static JGrep create(ObjectStore store,
+                               String containerPath,
+                               int nThreads,
+                               Matcher matcher,
+                               OutputPrinter output,
+                               StatisticsPrinter statisticsPrinter) {
+        return new JGrep(store.objectDescriptor(containerPath), nThreads, matcher, output, statisticsPrinter);
     }
 
     /**
-     * Build {@link Grep} instance
+     * Build {@link JGrep} instance
      *
      * @param containerPath directory path
      * @param nThreads      Number of thread
      * @param matcher       Text search strategy
      */
-    public Grep(ObjectDescriptor containerPath,
-                int nThreads,
-                Matcher matcher,
-                OutputPrinter output,
-                StatisticsPrinter statisticsPrinter) {
+    public JGrep(ObjectDescriptor containerPath,
+                 int nThreads,
+                 Matcher matcher,
+                 OutputPrinter output,
+                 StatisticsPrinter statisticsPrinter) {
         this.containerPath = containerPath;
         this.matcher = matcher;
         this.output = output;
@@ -209,7 +211,7 @@ public class Grep {
         });
     }
 
-    public Grep startAsync() {
+    public JGrep startAsync() {
         storeTraversingFut = pool.submit(() -> {
             ObjectTreeWalker.run(containerPath, this::onObjectFound);
         });
@@ -217,17 +219,23 @@ public class Grep {
         return this;
     }
 
-    public void waitForFinish() throws ExecutionException, InterruptedException {
-        // Wait for directory traversing to complete
-        storeTraversingFut.get();
+    public void waitForFinish() {
+        try {
+            // Wait for directory traversing to complete
+            storeTraversingFut.get();
 
-        // Wait for the rest of the objects being processed, it's safe as traversing is finished
-        shutdownLatch.await();
+            // Wait for the rest of the objects being processed, it's safe as traversing is finished
+            shutdownLatch.await();
 
-        // Stop the pool just in case (not necessary step as all tasks were finished on a previous step
-        pool.shutdown();
+            // Stop the pool just in case (not necessary step as all tasks were finished on a previous step
+            pool.shutdown();
 
-        // Optionally, display stats
-        statisticsPrinter.print(statistics);
+            // Optionally, display stats
+            statisticsPrinter.print(statistics);
+        } catch (InterruptedException ignored) {
+            // We interrupted thread execution, just skip it
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

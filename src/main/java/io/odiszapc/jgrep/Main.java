@@ -1,9 +1,6 @@
 package io.odiszapc.jgrep;
 
 import io.odiszapc.jgrep.fs.ObjectStore;
-import io.odiszapc.jgrep.lookup.Grep;
-
-import java.util.concurrent.ExecutionException;
 
 import static java.lang.System.exit;
 
@@ -16,7 +13,7 @@ public class Main {
      *
      * @param args
      */
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
+    public static void main(String[] args) {
         if (args.length < 2) {
             System.out.println("Invalid arguments. Exiting.");
             exit(1);
@@ -25,6 +22,6 @@ public class Main {
         final String root = args[0];
         final String pattern = args[1];
 
-        Grep.plainSearch(ObjectStore.defaultStore(), root, pattern, 4);
+        JGrep.plainSearch(ObjectStore.defaultStore(), root, pattern, 4);
     }
 }
