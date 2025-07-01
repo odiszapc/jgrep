@@ -39,8 +39,8 @@ JGrep.regexSearch(FileSystemStore.defaultFS(), "/", "/foo/", 4);
 JGrep.ignireCaseSearch(FileSystemStore.defaultFS(), "/", "/FOO/", 4);
 ```
 
-You can customize `ObjectStore implementation as well as provide your own versions of
-`Matcher`, `OutputPrinter` and `StatisticsPrinter`, lambda-driven example:
+You can customize `ObjectStore` implementation and provide your custom versions of
+`Matcher`, `OutputPrinter` and `StatisticsPrinter`, see the lambda-driven example below:
 
 ```java
 JGrep.create(path -> {
